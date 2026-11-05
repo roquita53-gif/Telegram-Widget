@@ -20,6 +20,9 @@ jobs:
       - name: Preparar Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Aceptar licencias Android
+        run: yes | sdkmanager --licenses
+
       - name: Instalar SDK
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
@@ -32,6 +35,7 @@ jobs:
         run: |
           mkdir proyecto
           ZIP_FILE=$(find . -maxdepth 1 -name '*.zip' -print -quit)
+          test -n "$ZIP_FILE"
           unzip -q "$ZIP_FILE" -d proyecto
 
       - name: Compilar APK
