@@ -37,6 +37,64 @@ jobs:
           test -n "$ZIP_FILE"
           unzip -q "$ZIP_FILE" -d proyecto
 
+      - name: Corregir descripción del widget
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          import sys
+
+          project = Path("proyecto/TelegramMessagesWidget")
+          xml_file = project / "app/src/main/res/xml/widget_info.xml"
+          if not xml_file.exists():
+              matches = list(project.glob("app/src/main/res/xml/*widget*.xml"))
+              if len(matches) == 1:
+                  xml_file = matches[0]
+              else:
+                  sys.exit(f"No se encontró widget_info.xml. Archivos encontrados: {matches}")
+
+          xml = xml_file.read_text(encoding="utf-8")
+          xml, count = re.subn(
+              r'android:description="[^"]*"',
+              'android:description="@string/widget_description"',
+              xml,
+              count=1
+          )
+          if count == 0 and 'android:description="@string/widget_description"' not in xml:
+              sys.exit("No se encontró android:description en el XML del widget.")
+          xml_file.write_text(xml, encoding="utf-8")
+
+          values_dir = project / "app/src/main/res/values"
+          values_dir.mkdir(parents=True, exist_ok=True)
+          strings_file = values_dir / "strings.xml"
+          description = "Mensajes recientes de Telegram en una lista desplazable"
+
+          if strings_file.exists():
+              strings = strings_file.read_text(encoding="utf-8")
+              entry = f'<string name="widget_description">{description}</string>'
+              if re.search(r'<string\s+name="widget_description">.*?</string>', strings, re.S):
+                  strings = re.sub(
+                      r'<string\s+name="widget_description">.*?</string>',
+                      entry,
+                      strings,
+                      count=1,
+                      flags=re.S
+                  )
+              else:
+                  strings = strings.replace("</resources>", f"    {entry}\n</resources>")
+              strings_file.write_text(strings, encoding="utf-8")
+          else:
+              strings_file.write_text(
+                  '<?xml version="1.0" encoding="utf-8"?>\n'
+                  '<resources>\n'
+                  f'    <string name="widget_description">{description}</string>\n'
+                  '</resources>\n',
+                  encoding="utf-8"
+              )
+
+          print(f"Descripción corregida en {xml_file}")
+          PY
+
       - name: Compilar APK
         run: |
           cd proyecto/TelegramMessagesWidget
