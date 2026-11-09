@@ -34,9 +34,8 @@ jobs:
 
       - name: Descomprimir proxecto
         run: |
-          mkdir -p proyecto
-          unzip -q TelegramMessagesWidget_VERSION_REVISADA.zip -d proyecto
-          test -f proyecto/TelegramMessagesWidget/app/build.gradle
+          mkdir -p proyectoTelegramMessagesWidget_RELEASE_FIRMADO.zip -d proyecto -d proyecto
+          test -f proyecto/app/build.gradle
 
       - name: Preparar clave de sinatura
         env:
@@ -49,7 +48,7 @@ jobs:
           test -s "$RUNNER_TEMP/signing/release.jks"
 
       - name: Compilar APK Release asinado
-        working-directory: proyecto/TelegramMessagesWidget
+        working-directory: proyecto
         env:
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/signing/release.jks
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PA
@@ -67,5 +66,4 @@ SSWORD }}
         uses: actions/upload-artifact@v4
         with:
           name: Telegram-Widget-APK-Release
-          path: proyecto/TelegramMessagesWidget/app/build/outputs/apk/release/app-release.apk
-          if-no-files-found: error
+          path:proyecto/app/build/outputs/apk/release/app-release.apk
