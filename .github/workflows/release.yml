@@ -17,7 +17,16 @@ jobs:
           java-version: '17'
 
       - name: Preparar Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup
+-android@v3
+
+      - name: Aceptar licenzas Android
+        run: |
+          yes | sdkmanager --licenses
+
+      - name: Instalar paquetes Android necesarios
+        run: |
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
       - name: Instalar Gradle
         uses: gradle/actions/setup-gradle@v4
