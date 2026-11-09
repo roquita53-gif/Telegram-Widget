@@ -16,12 +16,12 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Preparar Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Aceptar licenzas Android
-        run: |
-          yes | sdkmanager --licenses
+      - name: Preparar Android SDK e aceptar licenzas
+        uses: android-actions/setup-android@v4
+        with:
+          accept-android-sdk-licenses: true
+          log-accepted-android-sdk-licenses: false
+          packages: ''
 
       - name: Instalar paquetes Android necesarios
         run: |
@@ -42,7 +42,8 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          test -n "$KEYSTORE_BASE64" || { echo "Falta o segredo ANDROID_KEYSTORE_BASE64"; exit 1; }
+          test -n "$KEYSTORE_BASE64" || { echo "Falta o segredo ANDROID_KEYSTORE_BASE64"; exit 
+1; }
           mkdir -p "$RUNNER_TEMP/signing"
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/signing/release.jks"
           test -s "$RUNNER_TEMP/signing/release.jks"
@@ -51,7 +52,8 @@ jobs:
         working-directory: proyecto/TelegramMessagesWidget
         env:
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/signing/release.jks
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PA
+SSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
