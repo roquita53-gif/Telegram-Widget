@@ -36,37 +36,34 @@ jobs:
         run: |
           mkdir -p proyecto
           unzip -q TelegramMessagesWidget_RELEASE_FIRMADO.zip -d proyecto
-          test -f proyecto/TelegramMessagesWidget/app/build.gradle
+          test -f proyecto/app/build.gradle
 
       - name: Preparar clave de sinatura
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
           test -n "$KEYSTORE_BASE64" || { echo "Falta o segredo ANDROID_KEYSTORE_BASE64"; exit 1; }
-          mkdir -p "$RUNNER_TEMP/
-signing"
+          mkdir -p "$RUNNER_TEMP/signing"
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/signing/release.jks"
           test -s "$RUNNER_TEMP/signing/release.jks"
 
       - name: Compilar APK Release asinado
-        working-directory: proyecto/TelegramMessagesWidget
+        working-directory: proyecto
         env:
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/signing/release.jks
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: $
-{{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           test -n "$ANDROID_KEYSTORE_PASSWORD" || { echo "Falta ANDROID_KEYSTORE_PASSWORD"; exit 1; }
           test -n "$ANDROID_KEY_ALIAS" || { echo "Falta ANDROID_KEY_ALIAS"; exit 1; }
           test -n "$ANDROID_KEY_PASSWORD" || { echo "Falta ANDROID_KEY_PASSWORD"; exit 1; }
           gradle --no-daemon :app:assembleRelease
-          test -s app/build/outputs/apk/
-release/app-release.apk
+          test -s app/build/outputs/apk/release/app-release.apk
 
       - name: Gardar APK Release
         uses: actions/upload-artifact@v4
         with:
           name: Telegram-Widget-APK-Release
-          path: proyecto/TelegramMessagesWidget/app/build/outputs/apk/release/app-release.apk
+          path: proyecto/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
